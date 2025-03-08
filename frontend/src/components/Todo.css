@@ -12,6 +12,9 @@
   border-radius: 4px;
   background-color: #f9f9f9;
   border-left: 4px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  width: 96%;
 }
 
 .todo-list li.completed {
@@ -34,6 +37,7 @@
 .view-mode {
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .view-mode button {
@@ -47,6 +51,17 @@
 
 .view-mode button:hover {
   background-color: #d0d0d0;
+}
+
+/* Fixed position for buttons */
+.view-mode span {
+  flex-grow: 1;
+}
+
+.view-mode .button-group {
+  display: flex;
+  min-width: 110px; /* Set minimum width for buttons area */
+  justify-content: flex-end;
 }
 
 .todo-time {
@@ -75,6 +90,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   background-color: #fff;
   font-size: 0.9em;
+  width: 100%;
 }
 
 .todo-details.show {
@@ -88,6 +104,8 @@
   padding: 8px 12px;
   border-bottom: 1px solid #e0e0e0;
   border-radius: 6px 6px 0 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .details-header h4 {
@@ -98,12 +116,15 @@
 
 .details-content {
   padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .detail-row {
   margin-bottom: 10px;
   display: flex;
   align-items: flex-start;
+  width: 100%;
 }
 
 .detail-icon {
@@ -174,6 +195,8 @@
   padding: 10px;
   background-color: #f0f0f0;
   border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .edit-field {
@@ -193,6 +216,7 @@
   padding: 5px;
   border: 1px solid #ddd;
   border-radius: 3px;
+  box-sizing: border-box;
 }
 
 .edit-buttons {
@@ -218,33 +242,53 @@
 /* Todo Form Styles */
 .todo-form-container {
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .basic-form {
-  display: flex;
   margin-bottom: 10px;
 }
 
 .basic-form input {
-  flex-grow: 1;
-  padding: 8px;
+  width: 100%;
+  padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  margin-right: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
-.basic-form button {
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.form-buttons button {
   padding: 8px 12px;
-  background-color: #4caf50;
-  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  margin-left: 5px;
+  font-size: 14px;
 }
 
-.basic-form button:first-of-type {
+.details-button {
   background-color: #2196f3;
+  color: white;
+  flex: 1;
+  margin-right: 10px;
+}
+
+.add-button {
+  background-color: #4caf50;
+  color: white;
+  flex: 1;
+  margin-left: 10px;
+}
+
+.form-buttons button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .advanced-form {
@@ -252,6 +296,8 @@
   padding: 15px;
   border-radius: 4px;
   margin-bottom: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-row {
@@ -271,4 +317,5 @@
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  box-sizing: border-box;
 }

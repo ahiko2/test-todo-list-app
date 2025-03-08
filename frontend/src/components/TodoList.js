@@ -15,52 +15,98 @@ function TodoList() {
   const API_BASE_URL = 'http://localhost:8888';
 
   // Fetch todos from the backend
-  useEffect(() => {
+  const fetchTodos = () => {
     setLoading(true);
     axios.get(`${API_BASE_URL}/todos`)
       .then(response => {
         setTodos(response.data);
         setLoading(false);
+        setError(null);
       })
       .catch(error => {
         console.error('Error fetching todos:', error);
         setError('Failed to load todos. Please try again later.');
         setLoading(false);
       });
+  };
+
+  // Initial fetch on component mount
+  useEffect(() => {
+    fetchTodos();
   }, []);
 
   // Add a new todo
   const addTodo = todoData => {
-    axios.post(`${API_BASE_URL}/todos`, todoData)
-      .then(response => setTodos([...todos, response.data]))
-      .catch(error => console.error('Error adding todo:', error));
+    // Ensure all required fields are present
+    const newTodo = {
+      task: todoData.task,
+      completed: false,
+      time: todoData.time || '',
+      tag: todoData.tag || '',
+      priority: todoData.priority || 'medium',
+      note: todoData.note || ''
+    };
+
+    setLoading(true);
+    axios.post(`${API_BASE_URL}/todos`, newTodo)
+      .then(response => {
+        setTodos([...todos, response.data]);
+        setLoading(false);
+        setError(null);
+      })
+      .catch(error => {
+        console.error('Error adding todo:', error);
+        setError('Failed to add todo. Please try again.');
+        setLoading(false);
+      });
   };
 
   // Update a todo
   const updateTodo = (id, updates) => {
-    axios.put(`${API_BASE_URL}/todos/${id}`, updates)
+    // First get the current todo
+    const currentTodo = todos.find(todo => todo.id === id);
+    if (!currentTodo) return;
+
+    // Merge updates with current todo to ensure all fields are present
+    const updatedTodo = { ...currentTodo, ...updates };
+
+    setLoading(true);
+    axios.put(`${API_BASE_URL}/todos/${id}`, updatedTodo)
       .then(response => {
-        setTodos(todos.map(todo => 
-          todo.id === id ? response.data : todo
-        ));
+        setTodos(todos.map(todo => todo.id === id ? response.data : todo));
+        setLoading(false);
+        setError(null);
       })
-      .catch(error => console.error('Error updating todo:', error));
+      .catch(error => {
+        console.error('Error updating todo:', error);
+        setError('Failed to update todo. Please try again.');
+        setLoading(false);
+      });
   };
 
   // Delete a todo
   const deleteTodo = id => {
+    setLoading(true);
     axios.delete(`${API_BASE_URL}/todos/${id}`)
-      .then(() => setTodos(todos.filter(todo => todo.id !== id)))
-      .catch(error => console.error('Error deleting todo:', error));
+      .then(() => {
+        setTodos(todos.filter(todo => todo.id !== id));
+        setLoading(false);
+        setError(null);
+      })
+      .catch(error => {
+        console.error('Error deleting todo:', error);
+        setError('Failed to delete todo. Please try again.');
+        setLoading(false);
+      });
   };
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="todo-list">
+      {error && <div className="error">{error}</div>}
       <TodoForm addTodo={addTodo} />
-      {todos.length === 0 ? (
+      {loading ? (
+        <div className="loading">Loading...</div>
+      ) : todos.length === 0 ? (
         <p>No todos yet. Add one above!</p>
       ) : (
         <ul>

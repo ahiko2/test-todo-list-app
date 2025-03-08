@@ -10,16 +10,32 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
   const [editTag, setEditTag] = useState(todo.tag || '');
   const [editPriority, setEditPriority] = useState(todo.priority || 'medium');
   const [editNote, setEditNote] = useState(todo.note || '');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleUpdate = () => {
+    if (!editTask.trim()) return;
+    
     updateTodo(todo.id, { 
-      task: editTask,
+      task: editTask.trim(),
       time: editTime,
       tag: editTag,
       priority: editPriority,
-      note: editNote
+      note: editNote,
+      completed: todo.completed
     });
     setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    if (isDeleting) return; // Prevent double clicks
+    setIsDeleting(true);
+    
+    try {
+      deleteTodo(todo.id);
+    } catch (error) {
+      console.error("Error during delete:", error);
+      setIsDeleting(false);
+    }
   };
 
   const toggleComplete = () => {
@@ -42,6 +58,7 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
               type="text"
               value={editTask}
               onChange={(e) => setEditTask(e.target.value)}
+              required
             />
           </div>
           
@@ -85,7 +102,7 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
           </div>
           
           <div className="edit-buttons">
-            <button onClick={handleUpdate}>Save</button>
+            <button onClick={handleUpdate} disabled={!editTask.trim()}>Save</button>
             <button onClick={() => setIsEditing(false)}>Cancel</button>
           </div>
         </div>
@@ -110,8 +127,16 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
               {todo.time && <small className="todo-time"> ({todo.time})</small>}
               {todo.tag && <span className="todo-tag">{todo.tag}</span>}
             </span>
-            <button onClick={() => setIsEditing(true)}>Edit</button>
-            <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+            <div className="button-group">
+              <button onClick={() => setIsEditing(true)}>Edit</button>
+              <button 
+                onClick={handleDelete} 
+                disabled={isDeleting}
+                style={{ backgroundColor: isDeleting ? '#ccc' : '' }}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
           
           <div className={`todo-details ${showDetails ? 'show' : ''}`}>

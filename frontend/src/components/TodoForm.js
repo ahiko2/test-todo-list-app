@@ -9,20 +9,27 @@ function TodoForm({ addTodo }) {
   const [tag, setTag] = useState('');
   const [priority, setPriority] = useState('medium');
   const [note, setNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = e => {
     e.preventDefault();
     if (!task.trim()) return;
     
+    // Prevent double submission
+    if (submitting) return;
+    
+    setSubmitting(true);
+    
     // Create todo object with all fields
     const todoData = {
-      task,
+      task: task.trim(),
       time,
       tag,
       priority,
       note
     };
     
+    // Call parent component's addTodo function
     addTodo(todoData);
     
     // Reset form
@@ -32,6 +39,9 @@ function TodoForm({ addTodo }) {
     setPriority('medium');
     setNote('');
     setShowAdvanced(false);
+    
+    // Allow form submission again
+    setTimeout(() => setSubmitting(false), 500);
   };
 
   return (
@@ -43,11 +53,25 @@ function TodoForm({ addTodo }) {
             value={task}
             placeholder="Add a new task..."
             onChange={e => setTask(e.target.value)}
+            required
           />
-          <button type="button" onClick={() => setShowAdvanced(!showAdvanced)}>
+        </div>
+        
+        <div className="form-buttons">
+          <button 
+            type="button" 
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="details-button"
+          >
             {showAdvanced ? 'Hide Details' : 'Show Details'}
           </button>
-          <button type="submit">Add</button>
+          <button 
+            type="submit" 
+            disabled={!task.trim() || submitting}
+            className="add-button"
+          >
+            {submitting ? 'Adding...' : 'Add'}
+          </button>
         </div>
         
         {showAdvanced && (
