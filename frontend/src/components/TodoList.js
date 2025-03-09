@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TodoForm from './TodoForm';
 import TodoItem from './TodoItem';
-import './Todo.css';
 
 function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -101,15 +100,15 @@ function TodoList() {
   };
 
   return (
-    <div className="todo-list">
-      {error && <div className="error">{error}</div>}
+    <div className="mt-5 w-full">
+      {error && <div className="p-2.5 mb-5 text-center text-red-600 bg-red-50 rounded">{error}</div>}
       <TodoForm addTodo={addTodo} />
       {loading ? (
-        <div className="loading">Loading...</div>
+        <div className="text-center p-4 text-gray-600">Loading...</div>
       ) : todos.length === 0 ? (
-        <p>No todos yet. Add one above!</p>
+        <p className="text-center text-gray-500">No todos yet. Add one above!</p>
       ) : (
-        <ul>
+        <ul className="list-none p-0">
           {todos.map(todo => (
             <TodoItem 
               key={todo.id} 
