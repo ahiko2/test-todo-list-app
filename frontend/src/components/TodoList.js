@@ -1,102 +1,73 @@
 // src/components/TodoList.js
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import TodoForm from './TodoForm';
 import TodoItem from './TodoItem';
+import { TodoService } from '../services/todoService';
 
 function TodoList() {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Set the API base URL to match your backend
-  const API_BASE_URL = 'http://localhost:8888';
-
-  // Fetch todos from the backend
-  const fetchTodos = () => {
-    setLoading(true);
-    axios.get(`${API_BASE_URL}/todos`)
-      .then(response => {
-        setTodos(response.data);
-        setLoading(false);
-        setError(null);
-      })
-      .catch(error => {
-        console.error('Error fetching todos:', error);
-        setError('Failed to load todos. Please try again later.');
-        setLoading(false);
-      });
+  const fetchTodos = async () => {
+    try {
+      setLoading(true);
+      const data = await TodoService.getAllTodos();
+      setTodos(data);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+      setError('Failed to load todos. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Initial fetch on component mount
   useEffect(() => {
     fetchTodos();
   }, []);
 
-  // Add a new todo
-  const addTodo = todoData => {
-    // Ensure all required fields are present
-    const newTodo = {
-      task: todoData.task,
-      completed: false,
-      time: todoData.time || '',
-      tag: todoData.tag || '',
-      priority: todoData.priority || 'medium',
-      note: todoData.note || ''
-    };
-
-    setLoading(true);
-    axios.post(`${API_BASE_URL}/todos`, newTodo)
-      .then(response => {
-        setTodos([...todos, response.data]);
-        setLoading(false);
-        setError(null);
-      })
-      .catch(error => {
-        console.error('Error adding todo:', error);
-        setError('Failed to add todo. Please try again.');
-        setLoading(false);
-      });
+  const addTodo = async (todoData) => {
+    try {
+      setLoading(true);
+      const newTodo = await TodoService.createTodo(todoData);
+      setTodos([...todos, newTodo]);
+      setError(null);
+    } catch (error) {
+      console.error('Error adding todo:', error);
+      setError('Failed to add todo. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Update a todo
-  const updateTodo = (id, updates) => {
-    // First get the current todo
-    const currentTodo = todos.find(todo => todo.id === id);
-    if (!currentTodo) return;
-
-    // Merge updates with current todo to ensure all fields are present
-    const updatedTodo = { ...currentTodo, ...updates };
-
-    setLoading(true);
-    axios.put(`${API_BASE_URL}/todos/${id}`, updatedTodo)
-      .then(response => {
-        setTodos(todos.map(todo => todo.id === id ? response.data : todo));
-        setLoading(false);
-        setError(null);
-      })
-      .catch(error => {
-        console.error('Error updating todo:', error);
-        setError('Failed to update todo. Please try again.');
-        setLoading(false);
-      });
+  const updateTodo = async (id, updates) => {
+    try {
+      setLoading(true);
+      const updatedTodo = await TodoService.updateTodo(id, updates);
+      setTodos(todos.map(todo => todo.id === id ? updatedTodo : todo));
+      setError(null);
+    } catch (error) {
+      console.error('Error updating todo:', error);
+      setError('Failed to update todo. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Delete a todo
-  const deleteTodo = id => {
-    setLoading(true);
-    axios.delete(`${API_BASE_URL}/todos/${id}`)
-      .then(() => {
-        setTodos(todos.filter(todo => todo.id !== id));
-        setLoading(false);
-        setError(null);
-      })
-      .catch(error => {
-        console.error('Error deleting todo:', error);
-        setError('Failed to delete todo. Please try again.');
-        setLoading(false);
-      });
+  const deleteTodo = async (id) => {
+    try {
+      setLoading(true);
+      await TodoService.deleteTodo(id);
+      setTodos(todos.filter(todo => todo.id !== id));
+      setError(null);
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+      setError('Failed to delete todo. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

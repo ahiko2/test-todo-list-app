@@ -1,21 +1,35 @@
 const express = require('express');
 const cors = require('cors');
-// Load environment variables
 require('dotenv').config();
+
+const todoRoutes = require('./routes/todos');
+const errorHandler = require('./middleware/errorHandler');
 const db = require('./db/connection');
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Import and use routes
-const todoRoutes = require('./routes/todos');
+// Routes
 app.use('/todos', todoRoutes);
 
-// Get port from environment variable with fallback to 8888
+// Error handling
+app.use(errorHandler);
+
+// Get port from environment variable with fallback
 const PORT = process.env.PORT || 8888;
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Backend server is running on http://localhost:${PORT}`);
+// Only start server if database connection is successful
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+    process.exit(1);
+  }
+  connection.release();
+  
+  app.listen(PORT, () => {
+    console.log(`Backend server is running on http://localhost:${PORT}`);
+  });
 });

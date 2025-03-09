@@ -11,35 +11,54 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
   const [editPriority, setEditPriority] = useState(todo.priority || 'medium');
   const [editNote, setEditNote] = useState(todo.note || '');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState('');
 
-  const handleUpdate = () => {
-    if (!editTask.trim()) return;
+  const handleUpdate = async () => {
+    if (!editTask.trim() || isUpdating) return;
     
-    updateTodo(todo.id, { 
-      task: editTask.trim(),
-      time: editTime,
-      tag: editTag,
-      priority: editPriority,
-      note: editNote,
-      completed: todo.completed
-    });
-    setIsEditing(false);
+    setIsUpdating(true);
+    setUpdateError('');
+    
+    try {
+      await updateTodo(todo.id, {
+        task: editTask.trim(),
+        time: editTime,
+        tag: editTag,
+        priority: editPriority,
+        note: editNote,
+        completed: todo.completed
+      });
+      setIsEditing(false);
+    } catch (error) {
+      setUpdateError(error.userMessage || 'Failed to update todo');
+      console.error('Update error:', error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const handleDelete = () => {
-    if (isDeleting) return; // Prevent double clicks
+  const handleDelete = async () => {
+    if (isDeleting) return;
     setIsDeleting(true);
     
     try {
-      deleteTodo(todo.id);
+      await deleteTodo(todo.id);
     } catch (error) {
       console.error("Error during delete:", error);
       setIsDeleting(false);
     }
   };
 
-  const toggleComplete = () => {
-    updateTodo(todo.id, { completed: !todo.completed });
+  const toggleComplete = async () => {
+    setIsUpdating(true);
+    try {
+      await updateTodo(todo.id, { ...todo, completed: !todo.completed });
+    } catch (error) {
+      console.error("Error toggling complete:", error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleTaskClick = () => {
@@ -48,7 +67,6 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
     }
   };
 
-  // Function to get border color based on priority
   const getPriorityBorderColor = () => {
     switch(todo.priority) {
       case 'high':
@@ -66,6 +84,11 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
     <li className={`mb-2.5 p-2.5 rounded bg-gray-50 flex flex-col w-[100%] ${todo.completed ? 'bg-gray-100 text-gray-600' : ''} ${getPriorityBorderColor()}`}>
       {isEditing ? (
         <div className="p-2.5 bg-gray-100 rounded w-full box-border">
+          {updateError && (
+            <div className="mb-2.5 p-2 bg-red-50 text-red-600 rounded text-sm">
+              {updateError}
+            </div>
+          )}
           <div className="mb-2.5">
             <label className="block mb-1 font-bold">Task:</label>
             <input
@@ -122,15 +145,26 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
           
           <div className="mt-2.5 flex justify-end">
             <button 
-              className="ml-1 py-1 px-2.5 bg-green-500 text-white border-none rounded cursor-pointer hover:bg-green-600"
+              className={`ml-1 py-1 px-2.5 text-white border-none rounded cursor-pointer ${
+                isUpdating || !editTask.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
+              }`}
               onClick={handleUpdate} 
-              disabled={!editTask.trim()}
+              disabled={isUpdating || !editTask.trim()}
             >
-              Save
+              {isUpdating ? 'Saving...' : 'Save'}
             </button>
             <button 
               className="ml-1 py-1 px-2.5 bg-red-500 text-white border-none rounded cursor-pointer hover:bg-red-600"
-              onClick={() => setIsEditing(false)}
+              onClick={() => {
+                setIsEditing(false);
+                setUpdateError('');
+                // Reset form to original values
+                setEditTask(todo.task);
+                setEditTime(todo.time || '');
+                setEditTag(todo.tag || '');
+                setEditPriority(todo.priority || 'medium');
+                setEditNote(todo.note || '');
+              }}
             >
               Cancel
             </button>
@@ -144,6 +178,7 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
               className="mr-2 scale-110"
               checked={todo.completed}
               onChange={toggleComplete}
+              disabled={isUpdating}
             />
             <span 
               className={`${todo.completed ? 'line-through' : ''} mx-2 cursor-pointer flex-grow`}
@@ -157,13 +192,14 @@ function TodoItem({ todo, deleteTodo, updateTodo }) {
               <button 
                 className="ml-1 py-1 px-2 bg-blue-500 text-white border-none rounded cursor-pointer hover:bg-blue-600 text-xs"
                 onClick={() => setIsEditing(true)}
+                disabled={isUpdating}
               >
                 Edit
               </button>
               <button 
-                className={`ml-1 py-1 px-2 ${isDeleting ? 'bg-gray-400' : 'bg-red-500'} text-white border-none rounded cursor-pointer hover:bg-red-600 text-xs`}
+                className={`ml-1 py-1 px-2 ${isDeleting || isUpdating ? 'bg-gray-400' : 'bg-red-500'} text-white border-none rounded cursor-pointer hover:bg-red-600 text-xs`}
                 onClick={handleDelete} 
-                disabled={isDeleting}
+                disabled={isDeleting || isUpdating}
               >
                 {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
